@@ -5,12 +5,7 @@ name = "pypi"
 
 [packages]
 pandas = "*"
-plotly = "*"
 requests = "*"
-packaging = "*"
-folium = "*"
-geopandas = "*"
-pycountry = "*"
 
 [dev-packages]
 
