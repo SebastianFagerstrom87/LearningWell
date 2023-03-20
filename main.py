@@ -1,6 +1,7 @@
 import requests
 import json
 import os
+import math
 from pandas import json_normalize
 
 REQUEST_URL = 'https://www.forsakringskassan.se/fk_apps/MEKAREST/public/v1/iv-planerad/IVplaneradvardland.json'
@@ -40,25 +41,23 @@ class RemoteData:
         filtered_dict = [i for i in data_dict if not i[COUNTRY_COLUMN] == 'ALL']
         return filtered_dict
 
-    def get_max_value(self):
-        return self.filtered_data.loc[self.filtered_data[COUNTRY_COLUMN].eq('ALL'),
-                                      VALUE_COLUMN].item()
-
     def print_chart(self, year, gender):
         os.system('cls')
-        max_value = self.get_max_value()
-        max_value_string = f'{max_value:.0f}'
         data_dict = self.get_dictionary_from_dataset()
+        data_max_value = max(data_dict, key= lambda x: x[VALUE_COLUMN]).get(VALUE_COLUMN)
 
-        y_axis_first_row = f' {max_value_string} |'
+        # Round up to nearest 10 for 110% of data_max_value, for better data visualization.
+        y_axis_max_value = math.ceil((data_max_value * 1.1) / 10) * 10
+        y_axis_max_value_string = f'{y_axis_max_value:.0f}'
+        y_axis_first_row = f' {y_axis_max_value_string} |'
         y_axis_middle_row = f'{"|" : >{len(y_axis_first_row)}}'
-        y_axis_last_row = f' {"0" : >{len(max_value_string)}} |'
+        y_axis_last_row = f' {"0" : >{len(y_axis_max_value_string)}} |'
         total_chart_width = len(y_axis_first_row) + len(data_dict)*(COL_WIDTH+1)
 
         # Printing of data
         title = f'Planned care abroad for gender: {gender} and year: {year}'
         print('\n' + f'{title: ^{total_chart_width}}')
-        row_segment = max_value / CHART_ROWS
+        row_segment = y_axis_max_value / CHART_ROWS
         for row_nr in range(CHART_ROWS):
             # Three different ways to print y_axis. First, middle ones and last row.
             line = (y_axis_first_row if row_nr == 0
